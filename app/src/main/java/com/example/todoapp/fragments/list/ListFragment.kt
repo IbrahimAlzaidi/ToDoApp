@@ -9,9 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.todoapp.R
@@ -20,7 +18,6 @@ import com.example.todoapp.data.viewmodel.ToDoViewModel
 import com.example.todoapp.databinding.FragmentListBinding
 import com.example.todoapp.fragments.SharedViewModel
 import com.example.todoapp.fragments.list.adapter.ListAdapter
-import com.google.android.material.slider.Slider
 import com.google.android.material.snackbar.Snackbar
 
 
@@ -43,10 +40,10 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
         // Setup RecyclerView
         setupRecyclerView()
 
-        mToDoViewModel.getAllData.observe(viewLifecycleOwner, Observer { data ->
+        mToDoViewModel.getAllData.observe(viewLifecycleOwner) { data ->
             mSharedViewModel.checkIfDatabaseEmpty(data)
             adapter.setData(data)
-        })
+        }
 
         /* Vanished after Data Binding.
         mSharedViewModel.emptyDatabase.observe(viewLifecycleOwner, Observer {
@@ -70,7 +67,8 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     private fun setupRecyclerView() {
         val recyclerView = binding.recyclerView
         recyclerView.adapter = adapter
-        recyclerView.layoutManager = StaggeredGridLayoutManager(2,StaggeredGridLayoutManager.VERTICAL)
+        recyclerView.layoutManager =
+            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
 
         // Swipe to Delete
         swipeToDelete(recyclerView)
@@ -89,14 +87,14 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
                     Toast.LENGTH_SHORT
                 ).show()
                 // Restore Data
-                restoreDeletedData(viewHolder.itemView, deletedItem, viewHolder.adapterPosition)
+                restoreDeletedData(viewHolder.itemView, deletedItem)
             }
         }
         val itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
     }
 
-    fun restoreDeletedData(view: View, deletedItem: ToDoData, position: Int) {
+    fun restoreDeletedData(view: View, deletedItem: ToDoData) {
         val snackBar = Snackbar.make(
             view, "Deleted ${deletedItem.title}",
             Snackbar.LENGTH_LONG
@@ -120,9 +118,19 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_delete_all -> { confirmRemoval()}
-            R.id.menu_priority_high -> {mToDoViewModel.sortByHighPriority.observe(this, Observer { adapter.setData(it) })}
-            R.id.menu_priority_low ->  {mToDoViewModel.sortByLowPriority.observe(this, Observer { adapter.setData(it) })}
+            R.id.menu_delete_all -> {
+                confirmRemoval()
+            }
+            R.id.menu_priority_high -> {
+                mToDoViewModel.sortByHighPriority.observe(
+                    this
+                ) { adapter.setData(it) }
+            }
+            R.id.menu_priority_low -> {
+                mToDoViewModel.sortByLowPriority.observe(
+                    this
+                ) { adapter.setData(it) }
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -135,13 +143,13 @@ class ListFragment : Fragment(), SearchView.OnQueryTextListener {
     }
 
     private fun searchThroughDatabase(query: String?) {
-        val searchQuery: String = "%$query%"
+        val searchQuery = "%$query%"
 
-        mToDoViewModel.searchDataBase(searchQuery).observe(this, Observer { list ->
+        mToDoViewModel.searchDataBase(searchQuery).observe(this) { list ->
             list?.let {
                 adapter.setData(it)
             }
-        })
+        }
 
 
     }
